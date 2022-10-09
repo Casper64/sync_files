@@ -85,15 +85,15 @@ class ClientSocket:
         relative_path = self.get_relative_path(path)
 
         # give the filesystem some time to reload
-        time.sleep(0.2)
+        time.sleep(0.5)
         size = os.path.getsize(path)
         count = 0
         # make sure over 50KB files are always checked twice for size.
         prev_size = size if size < 50000 else 0
-        while count < 5 and size != prev_size:
+        while count < 10 and size != prev_size:
             # Vscode fires 2 modified events and is sometimes a little slow, because of that size will be 0
             # So this code cheks up to five times if os.path.getsize yields the same result when run twice
-            time.sleep(0.2)
+            time.sleep(0.5)
             prev_size = size
             size = os.path.getsize(path)
             count += 1
@@ -101,7 +101,7 @@ class ClientSocket:
         if size == 0:
             self.send(create_event_headers("clear", path), "event")
             return
-        if count == 5 or size != prev_size:
+        if count == 10 or size != prev_size:
             sync_shared.fail(f"Could not send {relative_path}. File is too large!")
             return
 
@@ -157,11 +157,11 @@ class ClientSocket:
             for name in dirs:
                 path = os.path.join(root, name)
 
-                socket_handler.send(create_event_headers("create", directory=True, source_path=path), "event")
+                socket_handler.send(create_event_headers("created", directory=True, source_path=path), "event")
             for name in files:
                 path = os.path.join(root, name)
 
-                socket_handler.send(create_event_headers("create", directory=False, source_path=path), "event")
+                socket_handler.send(create_event_headers("created", directory=False, source_path=path), "event")
                 socket_handler.send_file(path)
 
         sync_shared.done("Syncing is done")

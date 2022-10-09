@@ -142,8 +142,13 @@ class ServerSocketHandler:
                     # Wait for the data from the client and append it to the file
                     data = conn.recv(next_buffer_size)
 
-                    if not data:
+                    if not data and total_length == 0:
                         should_end = True
+                    # Something went wrong with sending the data
+                    elif not data:
+                        total_length += next_buffer_size
+                        continue
+
                     f.write(data)
 
                     progress.update(write_task, advance=next_buffer_size)
