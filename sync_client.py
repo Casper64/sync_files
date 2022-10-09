@@ -11,8 +11,6 @@ from genericpath import isfile
 import rich.progress
 
 import sync_shared
-sync_shared.user = 'CLIENT'
-
 
 # Fix VSCode duplciate modified event messages (for small sized files < 50kb or around 800 lines of code)
 DUPLICATE_DELAY = 0.5
@@ -73,6 +71,7 @@ class ClientSocket:
 
     def __init__(self):
         self._parse_args()
+        sync_shared.info("Logging from CLIENT side")
         self._connect()
 
     def send(self, message: str, content_type="message"):
@@ -91,7 +90,7 @@ class ClientSocket:
         prev_size = size if size < 50000 else 0
         while count < 5 and size != prev_size:
             # Vscode fires 2 modified events and is sometimes a little slow, because of that size will be 0
-            # So this is to fix that
+            # So this code cheks up to five times if os.path.getsize yields the same result when run twice
             time.sleep(0.2)
             prev_size = size
             size = os.path.getsize(path)
@@ -141,7 +140,7 @@ class ClientSocket:
 
     def get_relative_path(self, path: str):
         """get the relative path from the input directory"""
-        relative_path = path.replace(self.path, '').replace('\\', '/')
+        relative_path = path.replace(self.input_directory, '').replace('\\', '/')
         if relative_path[0] == '/':
             relative_path = relative_path[1:]
         return relative_path
@@ -152,7 +151,7 @@ class ClientSocket:
         socket_handler.send(create_event_headers("sync"), "event")
 
         # Walk over all files and directories and recreate the filetree at server side
-        for root, dirs, files in os.walk(self.path):
+        for root, dirs, files in os.walk(self.input_directory):
             for name in dirs:
                 path = os.path.join(root, name)
 
@@ -169,9 +168,9 @@ class ClientSocket:
     def _parse_args(self):
         """parse cli arguments/config file"""
         # Parse arguments from the cli
-        parser = ArgumentParser(description="Watch files and upload to a server. If no options are specified the watcher.conf file will be used in the current directory")
-        parser.add_argument('-d', '--directory', help="the directory to watch. Defaults to the current directory")
-        parser.add_argument('-s', '--server', required=True, help="the servers ip address")
+        parser = ArgumentParser(description="Watch files and upload to a server. If no options are specified the sync.conf file will be used in the current directory")
+        parser.add_argument('-i', '--input', help="the directory to watch. Defaults to the current directory")
+        parser.add_argument('-s', '--server', default='localhost', help="the servers ip address")
         parser.add_argument('-p', '--port', required=True, type=int, help="the port on the server")
 
         arguments = []
@@ -179,11 +178,11 @@ class ClientSocket:
             arguments = sys.argv[1:]
         # else get the options from the config file
         else:
-            if isfile('watcher.conf') == False:
-                sync_shared.warn("No watcher.conf file found")
+            if isfile('sync.conf') == False:
+                sync_shared.warn("No sync.conf file found")
                 parser.print_help()
                 sys.exit(1)
-            with open('watcher.conf', 'r') as f:
+            with open('sync.conf', 'r') as f:
                 while line := f.readline():
                     # Append each line as an argument value pair
                     [arg, val] = line.strip().split('=')
@@ -194,13 +193,12 @@ class ClientSocket:
         args = parser.parse_args(arguments)
         self.server_ip = args.server
         self.port = args.port
-        self.path = os.path.abspath(args.directory) if args.directory is not None else os.getcwd()
+        self.input_directory = os.path.abspath(args.input) if args.input else os.getcwd()
     
-         # Don't remove entire filesystem safeguard lol
-        if self.path.count('/') == 1 or self.path.count('\\') == 1:
+        # Don't remove entire filesystem safeguard lol
+        if self.input_directory.count('/') == 1 or self.input_directory.count('\\') == 1:
             sync_shared.fail("Can't choose this directory! Be careful this would destroy your file system")
             sys.exit(1)
-
 
     def _connect(self):
         """connect socket to the server"""
@@ -250,9 +248,9 @@ def main():
     # Init watchdog file observers
     event_handler = MyHandler()
     observer = Observer()
-    observer.schedule(event_handler,  path=socket_handler.path,  recursive=True)
+    observer.schedule(event_handler,  path=socket_handler.input_directory,  recursive=True)
 
-    sync_shared.info(f"Watching directory {socket_handler.path}")
+    sync_shared.info(f"Watching directory {socket_handler.input_directory}")
     observer.start()
 
     # Keep looping until the user stops the program (ctrl+c), is checked every second

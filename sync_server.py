@@ -9,7 +9,6 @@ import rich.progress
 import traceback
 
 import sync_shared
-sync_shared.user = 'SERVER'
 
 class ServerSocketHandler:
     _socket: socket.socket
@@ -20,11 +19,12 @@ class ServerSocketHandler:
 
     def __init__(self):
         self._parse_args()
-    
+        sync_shared.info("Logging from SERVER side")
+
     def _parse_args(self):
         """parse cli arguments/config file"""
         # Parse arguments from the cli
-        parser = ArgumentParser(description="Receive incoming files and output them in the right place. If no options are specified the watcher.conf file will be used in the current directory")
+        parser = ArgumentParser(description="Receive incoming files and output them in the right place. If no options are specified the sync.conf file will be used in the current directory")
         parser.add_argument('-o', '--output', help="the directory to output to. Defaults to the current directory")
         parser.add_argument('--host', default="localhost", help="the host to bind the socket to. Defaults to localhost")
         parser.add_argument('-p', '--port', required=True, type=int, help="the port to bind the server to")
@@ -34,11 +34,11 @@ class ServerSocketHandler:
             arguments = sys.argv[1:]
         # else get the options from the config file
         else:
-            if isfile('watcher.conf') == False:
-                sync_shared.warn("No watcher.conf file found")
+            if isfile('sync.conf') == False:
+                sync_shared.warn("No sync.conf file found")
                 parser.print_help()
                 sys.exit(1)
-            with open('watcher.conf', 'r') as f:
+            with open('sync.conf', 'r') as f:
                 while line := f.readline():
                     # Append each line as an argument value pair
                     [arg, val] = line.strip().split('=')
@@ -146,7 +146,7 @@ class ServerSocketHandler:
 
                     progress.update(write_task, advance=next_buffer_size)
 
-        # TODO: send a receipt back
+        # TODO?: send a receipt back
 
     def _handle_event(self, conn: socket.socket):
         """handle all content-type: 'event' messages from the client"""

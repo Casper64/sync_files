@@ -4,23 +4,21 @@ import socket
 import json
 import sys
 
-# maximum transition unit (maximum buffer size socket connection)
+# maximum transition unit in bytes (maximum buffer size socket connection)
 MTU = 4096
 # Fix the header size to 128 bytes
 HEADER_SIZE = 128
-# This string indicates that a segment has finished sending
+# Binary encoding format
 FORMAT = 'utf-8'
+# The disconnect message
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
 # Ansi color codes
 C_RESET = '\u001b[0m'
 C_WHITE = '\u001b[37m'
 
+# The global rich.Console instance
 console = Console()
-
-# To be set in watcher_server and watcher_client to server and client respectively
-user = 'SERVER'
-
 
 # Logging
 
@@ -77,13 +75,10 @@ def send(socket: socket.socket, message: str, content_type="message"):
         sys.exit(1)
 
 
-# Testing
+# Testing look how pretty!
 if __name__ == "__main__":
     info("info")
     done("success")
     warn("warning!")
     fail("Fatal error occured. Please try again!")
-elif __name__ == "sync_shared":
-    # Setup code
-    info(f"Logging from {user} side")
 
