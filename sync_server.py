@@ -95,14 +95,17 @@ class ServerSocketHandler:
             sync_shared.fail(str(err))
             sync_shared.warn("Closing connection")
             sync_shared.send(connection, sync_shared.DISCONNECT_MESSAGE)
+            self._socket.shutdown(socket.SHUT_RDWR)
+            self._socket.close()
         except Exception as e:
             sync_shared.fail("An error has occured:")
             traceback.print_exception(e)
             sync_shared.warn("Closing connection")
             sync_shared.send(connection, sync_shared.DISCONNECT_MESSAGE)
+            self._socket.shutdown(socket.SHUT_RDWR)
+            self._socket.close()
         finally:
             connection.close()
-            self._socket.close()
 
         # The connection was closed by the user or an error occurred so the socket can be closed on the server side
         sync_shared.done("Connection closed")
@@ -211,6 +214,7 @@ def main():
     try:
         # Create the actual socket
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((socket_handler.host, socket_handler.port))
         server.listen()
 
@@ -226,8 +230,7 @@ def main():
         # start listening to the socket
         socket_handler.start()
         pass
-        
-
+    
 if __name__ == "__main__":
     main()
 

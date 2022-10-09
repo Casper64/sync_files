@@ -238,6 +238,7 @@ class ClientSocket:
                 sync_shared.warn(f"[SERVER]: wants to close the connection!")
             else:
                 sync_shared.info(f"[SERVER]: {msg}")
+        print("emd!")
 
 
 # TODO?: Wrap socket creation in with statement and put it outside of the class
@@ -275,6 +276,10 @@ def main():
 
     # The connection is closed at thist moment
     sync_shared.done("Disconnected from the server")
+    
+    socket_handler.incoming_thread.join()
+    socket_handler._socket.shutdown(socket.SHUT_RDWR)
+    socket_handler._socket.close()
 
 
 if __name__ == "__main__":
