@@ -102,6 +102,7 @@ class ServerSocketHandler:
             sync_shared.send(connection, sync_shared.DISCONNECT_MESSAGE)
         finally:
             connection.close()
+            self._socket.close()
 
         # The connection was closed by the user or an error occurred so the socket can be closed on the server side
         sync_shared.done("Connection closed")
@@ -225,7 +226,7 @@ def main():
         # start listening to the socket
         socket_handler.start()
         pass
-
+        
 
 if __name__ == "__main__":
     main()

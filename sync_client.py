@@ -85,7 +85,7 @@ class ClientSocket:
         relative_path = self.get_relative_path(path)
 
         # give the filesystem some time to reload
-        time.sleep(0.5)
+        time.sleep(0.2)
         size = os.path.getsize(path)
         count = 0
         # make sure over 50KB files are always checked twice for size.
@@ -93,7 +93,7 @@ class ClientSocket:
         while count < 10 and size != prev_size:
             # Vscode fires 2 modified events and is sometimes a little slow, because of that size will be 0
             # So this code cheks up to five times if os.path.getsize yields the same result when run twice
-            time.sleep(0.5)
+            time.sleep(0.2)
             prev_size = size
             size = os.path.getsize(path)
             count += 1
