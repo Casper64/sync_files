@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import json
 from threading import Thread
 import time
