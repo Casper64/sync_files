@@ -8,6 +8,7 @@ Synchronize documents from one host to another in real-time.
 ## About Sync Files
 
 I've created this project during my computer networking class as a tool for myself. I needed to edit files on my raspberry pi without the use of a seperate screen and keyboard. Could I have better worked with a tool like NeoVim in the ssh terminal? Yes, probably. But this was way more fun and on top of that I got to use the theory I had learned and put it to practice. Plus I could use VSCode :+1:.
+EDIT: I found out there is a VSCode extension for exactly my problem called [remote ssh](https://code.visualstudio.com/docs/remote/ssh) :smile:.
 
 ### Disclaimer:
 The socket messages are not encryped. Read the [security](#security) section for more information.
